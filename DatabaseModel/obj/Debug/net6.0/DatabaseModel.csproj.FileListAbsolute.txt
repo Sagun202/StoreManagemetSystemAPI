@@ -1,0 +1,14 @@
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\bin\Debug\net6.0\DatabaseModel.deps.json
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\bin\Debug\net6.0\DatabaseModel.runtimeconfig.json
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\bin\Debug\net6.0\DatabaseModel.dll
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\bin\Debug\net6.0\DatabaseModel.pdb
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\DatabaseModel.csproj.AssemblyReference.cache
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\DatabaseModel.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\DatabaseModel.AssemblyInfoInputs.cache
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\DatabaseModel.AssemblyInfo.cs
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\DatabaseModel.csproj.CoreCompileInputs.cache
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\DatabaseModel.dll
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\refint\DatabaseModel.dll
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\DatabaseModel.pdb
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\DatabaseModel.genruntimeconfig.cache
+C:\Users\Sagun\Desktop\New folder\AqoreAssignment\DatabaseModel\obj\Debug\net6.0\ref\DatabaseModel.dll

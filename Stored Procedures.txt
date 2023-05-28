@@ -1,0 +1,596 @@
+//////////    For Adding customer
+
+
+create PROCEDURE AddCustomer
+  @JSON NVARCHAR(MAX)
+AS
+BEGIN
+
+  SET NOCOUNT ON;
+  BEGIN TRY
+    BEGIN TRANSACTION;
+
+    DECLARE @name VARCHAR(50);
+    DECLARE @phone VARCHAR(10);
+
+    SELECT
+      @name = JSON_VALUE(@JSON, '$.Name'),
+      @phone = JSON_VALUE(@JSON, '$.Phone');
+
+    IF EXISTS (SELECT 1 FROM Customers WHERE Phone = @phone)
+    BEGIN
+      THROW 51000, 'Phone number already exists.', 1;
+    END
+
+    INSERT INTO Customers (Name, Phone)
+    VALUES (@name, @phone);
+
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+	   THROW;
+  END CATCH;
+END;
+
+
+
+////////// Get all Customer 
+
+create PROCEDURE GetAllCustomer
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT * FROM Customers;
+END;
+
+
+
+
+//// update Customer 
+
+
+
+create PROCEDURE UpdateCustomer
+  @JSON NVARCHAR(MAX)
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  BEGIN TRY
+    BEGIN TRANSACTION;
+
+    DECLARE @id INT;
+    DECLARE @name VARCHAR(50);
+    DECLARE @phone VARCHAR(10);
+
+    SELECT
+      @id = JSON_VALUE(@JSON, '$.Id'),
+      @name = JSON_VALUE(@JSON, '$.Name'),
+      @phone = JSON_VALUE(@JSON, '$.Phone');
+
+    IF NOT EXISTS (SELECT 1 FROM Customers WHERE ID = @id)
+    BEGIN
+      THROW 50001, 'Customer not found.', 1;
+    END
+
+	IF EXISTS (SELECT 1 FROM Customers WHERE Phone = @phone AND ID <> @id )
+    BEGIN
+      THROW 51000, 'Phone number already exists.', 1;
+    END
+
+    UPDATE Customers
+    SET
+      Name = @name,
+      Phone = @phone
+    WHERE ID = @id;
+
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+	  THROW
+  END CATCH;
+END;
+
+
+
+/// Delete Customer
+
+
+create PROCEDURE DeleteCustomer
+  @CustomerID INT
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  BEGIN TRY
+    BEGIN TRANSACTION;
+
+    IF NOT EXISTS (SELECT 1 FROM Customers WHERE ID = @CustomerID)
+    BEGIN
+      THROW 50001, 'Customer not found.', 1;
+    END
+
+    DELETE FROM Customers
+    WHERE ID = @CustomerID;
+
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+	  THROW;
+  END CATCH;
+END;
+
+
+
+
+
+
+
+
+
+
+
+
+////// create Product 
+
+create PROCEDURE AddProduct
+  @JSON NVARCHAR(MAX)
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  BEGIN TRY
+    BEGIN TRANSACTION;
+
+    DECLARE @name VARCHAR(50);
+    DECLARE @price MONEY;
+
+    -- Parse JSON input
+    SELECT
+      @name = JSON_VALUE(@JSON, '$.Name'),
+      @price = JSON_VALUE(@JSON, '$.Price');
+
+    INSERT INTO Products (Name, Price)
+    VALUES (@name, @price);
+
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+	  Throw;
+  END CATCH;
+END;
+
+
+
+
+//// get all products
+
+
+create PROCEDURE GetAllProducts
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT * FROM Products;
+END;
+
+
+
+
+
+
+
+////// Update Product 
+
+
+Create PROCEDURE UpdateProduct
+  @JSON NVARCHAR(MAX)
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  BEGIN TRY
+    BEGIN TRANSACTION;
+	
+    DECLARE @id INT;
+    DECLARE @name VARCHAR(50);
+    DECLARE @price MONEY;
+
+    -- Parse JSON input
+    SELECT
+	 @id = JSON_VALUE(@JSON, '$.Id'),
+      @name = JSON_VALUE(@JSON, '$.Name'),
+      @price = JSON_VALUE(@JSON, '$.Price');
+
+    -- Check if product exists
+    IF NOT EXISTS (SELECT 1 FROM Products WHERE ID = @id)
+    BEGIN
+      THROW 50001, 'Product not found.', 1;
+    END
+
+    -- Update product
+    UPDATE Products
+    SET
+      Name = @name,
+      Price = @price
+    WHERE ID = @id;
+
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+	  Throw;
+  END CATCH;
+END;
+
+
+
+
+/////////////// Delete product 
+
+crfeate PROCEDURE DeleteProduct
+  @ProductID INT
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  BEGIN TRY
+    BEGIN TRANSACTION;
+
+    -- Check if product exists
+    IF NOT EXISTS (SELECT 1 FROM Products WHERE ID = @ProductID)
+    BEGIN
+      THROW 50001, 'Product not found.', 1;
+    END
+
+    -- Delete product
+    DELETE FROM Products
+    WHERE ID = @ProductID;
+
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+	  throw;
+  END CATCH;
+END;
+
+
+
+
+/////// Add Sales Transaction
+
+create PROCEDURE AddSalesTransaction
+  @JSON NVARCHAR(MAX)
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  BEGIN TRY
+    BEGIN TRANSACTION;
+
+    DECLARE @customerId INT;
+    DECLARE @productId INT;
+    DECLARE @quantity INT;
+
+
+    SELECT
+      @customerId = JSON_VALUE(@JSON, '$.CustomerId'),
+      @productId = JSON_VALUE(@JSON, '$.ProductId'),
+      @quantity = JSON_VALUE(@JSON, '$.Quantity');
+
+    IF NOT EXISTS (SELECT 1 FROM Customers WHERE Id = @customerId)
+    BEGIN
+      THROW 50001, 'Invalid customer ID.', 1;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM Products WHERE Id = @productId)
+    BEGIN
+      THROW 50002, 'Invalid product ID.', 1;
+    END
+
+    INSERT INTO SalesTransaction (CustomerId, ProductId, Quantity, TotalAmount)
+    VALUES (@customerId, @productId, @quantity, @quantity * (SELECT Price FROM Products WHERE Id = @productId));
+
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+	  throw;
+  END CATCH;
+END;
+
+
+////// get transactions 
+
+
+create PROCEDURE GetAllSalesTransaction
+@JsonOutput NVARCHAR(MAX) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+SET @JsonOutput = (
+  SELECT
+        ST.Id,
+        ST.Quantity,
+        ST.CreatedAt,
+        ST.IsInvoiceGenerated,
+        ST.TotalAmount,
+		C.Name as CustomerName,
+		C.Id as CustomerID,
+		P.Id as ProductId,
+		P.Name as ProductName,
+		P.Price as ProductPrice
+		
+    FROM
+        SalesTransaction ST
+		 JOIN Customers C ON st.CustomerId = c.Id
+         JOIN Products P ON st.ProductId = p.Id
+		FOR JSON PATH
+		);
+END;
+
+
+
+
+////////// update transaction 
+
+
+create PROCEDURE UpdateSalesTransaction
+  @JSON NVARCHAR(MAX)
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  BEGIN TRY
+    BEGIN TRANSACTION;
+
+    DECLARE @id INT;
+    DECLARE @customerId INT;
+    DECLARE @productId INT;
+    DECLARE @quantity INT;
+
+    SELECT
+      @id = JSON_VALUE(@JSON, '$.Id'),
+      @customerId = JSON_VALUE(@JSON, '$.CustomerId'),
+      @productId = JSON_VALUE(@JSON, '$.ProductId'),
+      @quantity = JSON_VALUE(@JSON, '$.Quantity')
+      
+
+    IF NOT EXISTS (SELECT 1 FROM SalesTransaction WHERE Id = @id)
+    BEGIN
+      THROW 50001, 'Sales transaction not found.', 1;
+    END
+
+    UPDATE SalesTransaction
+    SET
+      CustomerId = @customerId,
+      ProductId = @productId,
+      Quantity = @quantity,
+      TotalAmount = @quantity * (SELECT Price FROM Products WHERE Id = @productId)
+    WHERE Id = @id;
+
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+	  Throw;
+  END CATCH;
+END;
+
+
+
+
+
+
+
+
+/// delete transactions 
+
+create PROCEDURE DeleteSalesTransaction
+  @TransactionID INT
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  BEGIN TRY
+    BEGIN TRANSACTION;
+
+    -- Check if transaction exists
+    IF NOT EXISTS (SELECT 1 FROM SalesTransaction WHERE ID = @TransactionID)
+    BEGIN
+      THROW 50001, 'Transaction not found.', 1;
+    END
+
+    -- Delete transaction
+    DELETE FROM SalesTransaction
+    WHERE ID = @TransactionID;
+
+    COMMIT;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+	  Throw;
+  END CATCH;
+END;	
+
+
+
+
+
+///////// generate invoice   
+
+
+
+create PROCEDURE GenerateInvoice
+  @JSON NVARCHAR(MAX),
+  @JsonOutput NVARCHAR(MAX) OUTPUT
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  BEGIN TRY
+    BEGIN TRANSACTION;
+
+    -- Create a temporary table to hold the selected transaction IDs
+    CREATE TABLE #SelectedTransactions
+    (
+      Id INT,
+      CustomerId INT
+    );
+
+    INSERT INTO #SelectedTransactions (Id, CustomerId)
+    SELECT Id, CustomerId
+    FROM SalesTransaction
+    WHERE Id IN (
+      SELECT value
+      FROM OPENJSON(@JSON, '$.TransactionIds')
+    );
+
+    -- Check if any of the selected transactions already have generated invoices
+    IF EXISTS (
+      SELECT 1
+      FROM #SelectedTransactions st
+      INNER JOIN SalesTransaction stx ON stx.Id = st.Id
+      WHERE stx.IsInvoiceGenerated = 1
+    )
+    BEGIN
+      THROW 50002, 'Selected transactions already have generated invoices.', 1;
+    END
+
+    DECLARE @InvoiceIdTable TABLE (Id INT);
+
+    INSERT INTO Invoice (CustomerId, CreatedAt, UpdatedAt)
+    OUTPUT INSERTED.Id INTO @InvoiceIdTable
+    SELECT DISTINCT CustomerId, GETDATE(), GETDATE()
+    FROM #SelectedTransactions;
+
+    -- Retrieve the generated invoice IDs
+    DECLARE @InvoiceIds TABLE (Id INT);
+    INSERT INTO @InvoiceIds (Id)
+    SELECT Id FROM @InvoiceIdTable;
+
+   
+    UPDATE st
+    SET st.IsInvoiceGenerated = 1,
+        st.TotalAmount = p.Price * st.Quantity
+    FROM SalesTransaction st
+    INNER JOIN Products p ON p.Id = st.ProductId
+    INNER JOIN #SelectedTransactions stt ON stt.Id = st.Id;
+
+    -- Create the mapping between the sales transactions and the invoices
+    INSERT INTO SalesTransactionInvoice (SalesTransactionId, InvoiceId)
+    SELECT st.Id, inv.Id
+    FROM SalesTransaction st
+    CROSS JOIN @InvoiceIds inv;
+
+
+    UPDATE inv
+    SET TotalAmount = (
+      SELECT SUM(st.TotalAmount)
+      FROM SalesTransaction st
+      WHERE st.IsInvoiceGenerated = 1
+        AND st.CustomerId = inv.CustomerId
+        AND st.Id IN (SELECT Id FROM #SelectedTransactions)
+    )
+    FROM Invoice inv
+    WHERE inv.Id IN (SELECT Id FROM @InvoiceIds);
+
+    COMMIT;
+
+    SET @JsonOutput = (
+      SELECT
+        inv.Id AS InvoiceId,
+        inv.TotalAmount AS InvoiceTotalAmount,
+        cus.Id AS CustomerId,
+        cus.Name AS CustomerName,
+        (
+          SELECT
+            p.Name AS ProductName,
+			p.Price As ProductPrice,
+            st.Quantity,
+            st.TotalAmount AS ProductTotalAmount
+          FROM SalesTransaction st
+          INNER JOIN Products p ON p.Id = st.ProductId
+          WHERE st.IsInvoiceGenerated = 1
+            AND st.CustomerId = cus.Id
+            AND st.Id IN (SELECT Id FROM #SelectedTransactions)
+          FOR JSON PATH
+        ) AS Products
+      FROM Invoice inv
+      INNER JOIN Customers cus ON cus.Id = inv.CustomerId
+      WHERE inv.Id IN (SELECT Id FROM @InvoiceIds)
+      FOR JSON PATH
+    );
+
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0
+      ROLLBACK;
+
+    THROW;
+  END CATCH;
+
+  -- Drop the temporary table
+  IF OBJECT_ID('tempdb..#SelectedTransactions') IS NOT NULL
+    DROP TABLE #SelectedTransactions;
+END;
+
+
+
+
+
+
+
+
+
+///////// get all invoice 
+
+
+
+
+Create PROCEDURE GetAllInvoice
+@JsonOutput NVARCHAR(MAX) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+       SET @JsonOutput = (
+      SELECT
+        inv.Id AS InvoiceId,
+        inv.TotalAmount AS InvoiceTotalAmount,
+        cus.Id AS CustomerId,
+        cus.Name AS CustomerName,
+        (
+          SELECT
+            p.Name AS ProductName,
+			p.Price As ProductPrice,
+            st.Quantity,
+            st.TotalAmount AS ProductTotalAmount
+          FROM SalesTransaction st
+          INNER JOIN Products p ON p.Id = st.ProductId
+          WHERE st.IsInvoiceGenerated = 1
+            AND st.CustomerId = cus.Id
+          FOR JSON PATH
+        ) AS Products
+      FROM Invoice inv
+      INNER JOIN Customers cus ON cus.Id = inv.CustomerId
+      FOR JSON PATH
+	  );
+
+END;
+
